@@ -29,7 +29,13 @@ function renderUI(data) {
         
         const statusSpan = document.createElement('span');
         statusSpan.className = `history-status ${sub.isFailed ? 'status-failed' : 'status-accepted'}`;
-        statusSpan.innerText = sub.status || (sub.isFailed ? 'Failed' : 'Accepted');
+        
+        let statusText = sub.status || (sub.isFailed ? 'Failed' : 'Accepted');
+        if (sub.isRun) {
+          statusText = `[Run] ${statusText}`;
+          statusSpan.style.opacity = 0.7;
+        }
+        statusSpan.innerText = statusText;
         
         li.appendChild(titleSpan);
         li.appendChild(statusSpan);

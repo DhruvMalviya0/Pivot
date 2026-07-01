@@ -22,8 +22,8 @@ function getProblemMetadata() {
   return { slug, title };
 }
 
-// Stash the latest code/lang by question_id or simply the latest one
-let pendingSubmissions = {};
+// Stash the latest code/lang (since question_id is often missing from the result payload)
+let latestSubmission = {};
 
 // Listen for messages from the injected script
 window.addEventListener('message', function(event) {
@@ -33,31 +33,32 @@ window.addEventListener('message', function(event) {
   if (event.data && event.data.type === 'PIVOT_SUBMISSION_STARTED') {
     const meta = getProblemMetadata();
     const payload = event.data.payload;
-    console.log('Pivot Content Script: Submission Started', payload);
+    console.log(`Pivot Content Script: ${payload.isRun ? 'Run' : 'Submission'} Started`, payload);
     
     // Stash it
-    if (payload.question_id) {
-      pendingSubmissions[payload.question_id] = {
-        lang: payload.lang,
-        code: payload.typed_code,
-        problem: meta
-      };
-    }
+    latestSubmission = {
+      lang: payload.lang,
+      code: payload.typed_code,
+      isRun: payload.isRun,
+      problem: meta
+    };
   }
 
   if (event.data && event.data.type === 'PIVOT_SUBMISSION_RESULT') {
     const payload = event.data.payload;
-    console.log('Pivot Content Script: Submission Result', payload);
     
-    // Merge with stashed code
-    const stashed = pendingSubmissions[payload.question_id] || {};
+    // Merge with latest stashed code (question_id is often undefined in Run checks)
+    const stashed = latestSubmission || {};
     
     const fullData = {
       ...payload,
       lang: stashed.lang,
       code: stashed.code,
+      isRun: stashed.isRun || payload.isRun || false,
       problem: stashed.problem || getProblemMetadata()
     };
+    
+    console.log(`Pivot Content Script: ${fullData.isRun ? 'Run' : 'Submission'} Result`, fullData);
     
     // Forward the merged object to background script
     chrome.runtime.sendMessage({
@@ -66,9 +67,7 @@ window.addEventListener('message', function(event) {
     });
     
     // Cleanup
-    if (payload.question_id) {
-      delete pendingSubmissions[payload.question_id];
-    }
+    latestSubmission = {};
   }
 });
 

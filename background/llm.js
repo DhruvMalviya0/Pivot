@@ -10,6 +10,11 @@ export async function generateHint(problemMeta, submissionData) {
     throw new Error('API Key not set. Please set it in the Pivot popup.');
   }
 
+  let runNote = '';
+  if (submissionData.isRun) {
+    runNote = '\nNote: The user only clicked "Run", which tests visible sample cases. Warn them that fixing this might not cover hidden edge cases.';
+  }
+
   const prompt = `
 You are an expert competitive programming coach. 
 The user is working on the LeetCode problem "${problemMeta.title}" (${problemMeta.slug}).
@@ -27,6 +32,7 @@ If there was an error message or failed test case:
 Expected Output: ${submissionData.expected_output || 'N/A'}
 User Output: ${submissionData.code_output || 'N/A'}
 Error Message: ${submissionData.full_error_message || 'N/A'}
+${runNote}
 
 Provide EXACTLY ONE hint to help them get un-stuck. 
 Do NOT provide the full solution. Do NOT rewrite their code. 

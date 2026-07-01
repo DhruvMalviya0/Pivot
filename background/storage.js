@@ -2,12 +2,33 @@ export async function saveSubmission(submissionData) {
   const result = await chrome.storage.local.get(['submissions', 'streak']);
   const submissions = result.submissions || [];
   
+  // Determine if it passed. 
+  let passed = submissionData.status_msg === 'Accepted';
+  
+  if (submissionData.isRun) {
+    if (typeof submissionData.correct_answer === 'boolean') {
+      passed = submissionData.correct_answer;
+    } else if (typeof submissionData.compare_result === 'string') {
+      passed = [...submissionData.compare_result].every((c) => c === '1');
+    } else if (submissionData.code_answer && submissionData.expected_code_answer) {
+      passed = JSON.stringify(submissionData.code_answer) === JSON.stringify(submissionData.expected_code_answer);
+    } else {
+      passed = false;
+    }
+  } else {
+    // Submits
+    if (submissionData.total_testcases !== undefined && submissionData.total_testcases > 0) {
+      passed = passed && (submissionData.total_correct === submissionData.total_testcases);
+    }
+  }
+  
   const newSubmission = {
     id: Date.now(),
     date: new Date().toISOString(),
     problem: submissionData.problem,
-    status: submissionData.status_msg,
-    isFailed: submissionData.status_msg !== 'Accepted'
+    status: passed ? 'Accepted' : (submissionData.status_msg === 'Accepted' ? 'Wrong Answer' : submissionData.status_msg),
+    isFailed: !passed,
+    isRun: submissionData.isRun
   };
   
   submissions.unshift(newSubmission);
@@ -21,7 +42,7 @@ export async function saveSubmission(submissionData) {
   const today = new Date().toDateString();
   let currentStreak = result.streak || { count: 0, lastSolvedDate: null };
   
-  if (!newSubmission.isFailed) {
+  if (!newSubmission.isFailed && !newSubmission.isRun) {
     if (currentStreak.lastSolvedDate !== today) {
       // Check if last solved was yesterday
       const yesterday = new Date();
