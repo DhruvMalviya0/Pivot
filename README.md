@@ -47,26 +47,62 @@ Sidebar UI (injected)
 
 ## Key Design Decisions
 
-- **Run vs Submit Intelligence.** Users can test their code with the "Run" button without burning an official profile attempt or breaking their streak. Pivot intelligently distinguishes between `/interpret_solution/` and `/submit/` to safeguard user stats while still providing AI hints on sample test cases.
 - **No backend.** Storing the API key client-side and calling OpenRouter directly from the extension means zero hosting cost and zero server-side data retention — a deliberate tradeoff favoring privacy and simplicity over features like cross-device sync.
 - **Hints, not solutions.** The coach is prompted to point at the specific broken logic rather than rewrite the function, to keep the tool aligned with learning rather than copy-pasting.
 - **Manifest V3 service worker** instead of a persistent background page, in line with Chrome's current extension platform requirements.
 
 ## Status
 
-Currently a working proof-of-concept: submission tracking, streak counter, Run/Submit differentiation, and AI-generated hints are all functional end-to-end on LeetCode's problem pages.
+Currently a working proof-of-concept: submission tracking, streak counter, and AI-generated hints are all functional end-to-end on LeetCode's problem pages.
 
 **Planned next:**
 - Full solution walkthrough on request (currently hint-only)
 - Multiple alternative approaches per problem
 - Pattern-tagging across problems (e.g. "you consistently struggle with sliding window")
 
-## Setup
+## Installation
 
-1. Clone this repo
-2. Load unpacked in `chrome://extensions` (Developer mode → Load unpacked)
-3. Open a LeetCode problem, click the Pivot icon, paste in your OpenRouter API key
-4. Submit code as normal — Pivot picks up wrong answers automatically
+Pivot isn't on the Chrome Web Store yet (coming soon — see below), so for now it runs as an unpacked extension. This takes about 2 minutes.
+
+### 1. Get the code
+```bash
+git clone https://github.com/DhruvMalviya0/pivot.git
+cd pivot
+```
+Or download the ZIP from GitHub and extract it somewhere permanent — **don't delete or move this folder after installing**, Chrome loads the extension directly from it.
+
+### 2. Load it into your browser
+
+**Chrome / Brave / Edge (any Chromium-based browser):**
+1. Open `chrome://extensions` (or `brave://extensions`, `edge://extensions`)
+2. Toggle **Developer mode** on — top right corner of the page
+3. Click **Load unpacked**
+4. Select the `pivot` folder you just cloned/extracted (the one containing `manifest.json`)
+5. Pivot's icon should now appear in your extensions toolbar — pin it for easy access
+
+### 3. Add your OpenRouter API key
+1. Click the Pivot icon in your toolbar to open the sidebar
+2. Paste your OpenRouter API key into the **OpenRouter API Key** field
+3. Click **Save Key**
+
+Don't have a key yet? Grab one free at [openrouter.ai](https://openrouter.ai) — sign up, go to Keys, generate one. OpenRouter gives access to many models (including free-tier options), so you're not locked into a single provider.
+
+### 4. Start solving
+1. Open any [LeetCode](https://leetcode.com) problem
+2. Write your solution as normal
+3. Hit **Run** or **Submit** — Pivot picks up the result automatically and, if it's wrong, the AI Coach panel pops up in the bottom-right with a targeted hint
+
+### Updating later
+If you pull new changes from the repo, go back to `chrome://extensions` and click the refresh icon on the Pivot card — no need to remove and re-add it.
+
+### Troubleshooting
+- **Extension doesn't load** — make sure you selected the folder containing `manifest.json`, not a parent or child folder
+- **No hint appears on Run/Submit** — open DevTools (F12) → Console tab on the LeetCode page, check for `[Pivot]` log lines to see what's being detected
+- **"Invalid API key" errors** — double check you copied the full key from OpenRouter with no trailing spaces
+
+---
+
+*Once published to the Chrome Web Store, this section will be replaced with a one-click install link.*
 
 ## Why "Pivot"
 
